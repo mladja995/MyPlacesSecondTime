@@ -12,6 +12,10 @@ public class MyPlacesData {
         myPlaces.add(new MyPlace("Place C"));
         myPlaces.add(new MyPlace("Place D"));
         myPlaces.add(new MyPlace("Place E"));
+       /* MyPlace place = new MyPlace("Place A");
+        place.setLongitude("55");
+        place.setLatitude("44");
+        myPlaces.add(place);*/
 
     }
 

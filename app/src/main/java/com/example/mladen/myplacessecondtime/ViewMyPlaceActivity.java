@@ -1,6 +1,5 @@
 package com.example.mladen.myplacessecondtime;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -8,26 +7,53 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
+public class ViewMyPlaceActivity extends AppCompatActivity {
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_view_my_place);
 
+        int position = -1;
+        try{
+            Intent listIntent = getIntent();
+            Bundle positionBundle = listIntent.getExtras();
+            position = positionBundle.getInt("position");
+        }
+        catch(Exception e){
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            finish();
+        }
 
+        if(position >= 0)
+        {
+            MyPlace place = MyPlacesData.getInstance().getPlace(position);
 
+            TextView twName = (TextView)findViewById(R.id.viewmyplace_name_text);
+            twName.setText(place.getName());
+
+            TextView twDesc = (TextView)findViewById(R.id.viewmyplaces_desc_text);
+            twDesc.setText(place.getDesc());
+        }
+
+        final Button finishedButton = (Button)findViewById(R.id.viewmyplace_finished_button);
+        finishedButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
     }
 
     /*Bez ovog ne vidimo tri tacke u gornjem desnom uglu
-    * koje predstavljaju opadajuci meni*/
+     * koje predstavljaju opadajuci meni*/
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_view_my_place, menu);
         return true;
     }
 
@@ -50,12 +76,7 @@ public class MainActivity extends AppCompatActivity {
             Intent i = new Intent(this, EditMyPlaceActivity.class);
             startActivityForResult(i, NEW_PLACE);
         }
-        else if(id == R.id.my_places_list_item)
-        {
-            //Toast.makeText(this, "My Places!", Toast.LENGTH_SHORT).show();
-            Intent i = new Intent(this, MyPlacesList.class);
-            startActivity(i);
-        }
+
         else if(id == R.id.about_item)
         {
             //Toast.makeText(this, "About!", Toast.LENGTH_SHORT).show();
@@ -69,13 +90,4 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data){
-        super.onActivityResult(requestCode, resultCode, data);
-        if(resultCode == Activity.RESULT_OK){
-            Toast.makeText(this, "New place added", Toast.LENGTH_SHORT).show();
-        }
-    }
-
 }
