@@ -1,7 +1,10 @@
 package com.example.mladen.myplacessecondtime;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.ContextMenu;
@@ -15,13 +18,20 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MyPlacesList extends AppCompatActivity {
     private ArrayList<String> places;
+    Handler guiThread;
+    Context context;
+    ProgressDialog progressDialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_places_list);
+
+
 
         places = new ArrayList<String>();
         places.add("Tvrdjava");
@@ -54,6 +64,8 @@ public class MyPlacesList extends AppCompatActivity {
                 contextMenu.add(0, 2, 2, "Edit place");
                 contextMenu.add(0, 3, 3, "Delete place");
                 contextMenu.add(0, 4, 4, "Show on map");
+                contextMenu.add(0, 5, 5, "Upload place");
+
 
 
 
@@ -104,9 +116,64 @@ public class MyPlacesList extends AppCompatActivity {
             i.putExtra("lon", place.getLongitude());
             startActivityForResult(i, 2);
         }
+        else if(item.getItemId() == 5)
+        {
+            ExecutorService transThread = Executors.newSingleThreadExecutor();
+            final int position = info.position;
+            transThread.submit(new Runnable(){
+                @Override
+                public void run()
+                {
+                    MyPlace place = MyPlacesData.getInstance().getPlace(position);
+                    guiStartProgressDialog("Sending place", "Sending" + place.getName());
+                    try
+                    {
+                        final String message = MyPlacesHTTPHelper.sendMyPlace(place);
+                        guiNotifyUser(message);
+
+
+                    }
+                    catch(Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+                    guiDismissProgressDialog();
+                }
+            });
+        }
 
 
         return super.onContextItemSelected(item);
+    }
+
+    private void guiDismissProgressDialog() {
+        guiThread.post(new Runnable() {
+            @Override
+            public void run() {
+                progressDialog.dismiss();
+            }
+        });
+    }
+
+    private void guiNotifyUser(final String message) {
+        guiThread.post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+
+    private void guiStartProgressDialog(final String title, final String message) {
+        guiThread.post(new Runnable() {
+            @Override
+            public void run() {
+                progressDialog.setTitle(title);
+                progressDialog.setMessage(message);
+                progressDialog.show();
+            }
+        });
     }
 
     /*Bez ovog ne vidimo tri tacke u gornjem desnom uglu
